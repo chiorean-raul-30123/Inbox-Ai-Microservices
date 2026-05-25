@@ -1,0 +1,17 @@
+from fastapi import APIRouter
+
+from src.api.v1.auth import router as authRouter
+from src.api.v1.dashboard import router as dashboardRouter
+from src.api.v1.documents import router as documentsRouter
+from src.api.v1.settings import router as settingsRouter
+from src.api.v1.emails import router as emailsRouter
+from src.api.v1.scan import router as scanRouter
+
+
+apiRouter = APIRouter()
+apiRouter.include_router(authRouter)
+apiRouter.include_router(documentsRouter)
+apiRouter.include_router(dashboardRouter)
+apiRouter.include_router(settingsRouter)
+apiRouter.include_router(emailsRouter)
+apiRouter.include_router(scanRouter)

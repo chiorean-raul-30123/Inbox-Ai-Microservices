@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+python-dotenv==1.0.1
+sqlalchemy
+psycopg2-binary
+python-jose
+passlib
+argon2-cffi
+email-validator
+httpx
+boto3
