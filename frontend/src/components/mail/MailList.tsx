@@ -77,10 +77,16 @@ export function MailList({
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-slate-900">
-                      AI Document Router
+                      {document.incoming_email?.sender_name ??
+                        document.incoming_email?.sender_email ??
+                        "AI Document Router"}
                     </p>
                     <p className="mt-1 truncate text-sm font-medium text-slate-700">
-                      {document.original_filename}
+                      {(document.incoming_email?.subject ?? document.original_filename) && " "}
+                      {document.incoming_email?.body ??
+                        `Classified as ${document.predicted_label ?? "unknown"} with ${formatConfidence(
+                          document.confidence_score
+                        )}.`}
                     </p>
                   </div>
 

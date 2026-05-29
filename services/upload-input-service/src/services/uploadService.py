@@ -9,6 +9,14 @@ from inbox_shared.repositories import AuditRepository, DocumentRepository
 from inbox_shared.services import StorageService
 
 from src.messaging.rabbitPublisher import publishMessage
+from uuid import uuid4
+
+from inbox_shared.enums import AuditAction, DocumentStatus, EmailProcessingStatus
+from inbox_shared.repositories import (
+    AuditRepository,
+    DocumentRepository,
+    IncomingEmailRepository,
+)
 
 
 class UploadService:
@@ -16,12 +24,17 @@ class UploadService:
         self.storageService = StorageService()
         self.documentRepository = DocumentRepository()
         self.auditRepository = AuditRepository()
+        self.incomingEmailRepository = IncomingEmailRepository()
 
     def uploadDocument(
         self,
         *,
         file: UploadFile,
         uploadedBy=None,
+        senderEmail: str | None = None,
+        senderName: str | None = None,
+        subject: str | None = None,
+        body: str | None = None,
     ) -> dict:
         db = createDbSession()
 
@@ -57,6 +70,20 @@ class UploadService:
                     "sourceType": "UPLOAD",
                 },
             )
+            incomingEmail = None
+
+            if senderEmail or senderName or subject or body:
+                incomingEmail = self.incomingEmailRepository.create(
+                    db,
+                    senderEmail=senderEmail or "direct-upload@inbox-ai.local",
+                    senderName=senderName or "Direct Upload",
+                    subject=subject or storedFile["originalFilename"],
+                    body=body,
+                    externalMessageId=f"direct-upload-{uuid4()}",   
+                    documentId=document.id,
+                    processingStatus=EmailProcessingStatus.RECEIVED,
+                    receivedAt=datetime.now(timezone.utc),
+                )
 
             event = {
                 "eventType": "DocumentReceived",
@@ -65,6 +92,9 @@ class UploadService:
                 "sourceType": "UPLOAD",
                 "requiresOcr": False,
                 "receivedAt": datetime.now(timezone.utc).isoformat(),
+                "emailId": str(incomingEmail.id) if incomingEmail else None,
+                "senderEmail": senderEmail,
+                "subject": subject,
             }
 
             publishMessage(

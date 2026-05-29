@@ -73,4 +73,7 @@ class IncomingEmail(Base, UUIDPrimaryKeyMixin):
         nullable=True,
     )
 
-    document = relationship("Document")
+    document = relationship(
+        "Document",
+        back_populates="incomingEmail",
+    )

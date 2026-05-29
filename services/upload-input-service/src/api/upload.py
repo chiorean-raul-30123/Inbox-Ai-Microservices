@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, File, UploadFile
 
 from src.services.uploadService import UploadService
+from fastapi import Form
 
 
 router = APIRouter(prefix="/upload", tags=["Upload"])
@@ -15,12 +16,20 @@ def getUploadService() -> UploadService:
 @router.post("")
 def uploadDocument(
     file: Annotated[UploadFile, File(...)],
+    senderEmail: Annotated[str | None, Form()] = None,
+    senderName: Annotated[str | None, Form()] = None,
+    subject: Annotated[str | None, Form()] = None,
+    body: Annotated[str | None, Form()] = None,
 ):
     uploadService = getUploadService()
 
     return uploadService.uploadDocument(
         file=file,
         uploadedBy=None,
+        senderEmail=senderEmail,
+        senderName=senderName,
+        subject=subject,
+        body=body,
     )
 
 

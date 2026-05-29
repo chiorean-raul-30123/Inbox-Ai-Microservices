@@ -3,7 +3,13 @@ import torch.nn as nn
 
 
 class TextCNN(nn.Module):
-    def __init__(self, vocabSize=30000, embedDim=128, numClasses=3):
+    def __init__(
+        self,
+        vocabSize: int,
+        embedDim: int,
+        numClasses: int,
+        dropout: float = 0.5,
+    ):
         super().__init__()
 
         self.embedding = nn.Embedding(vocabSize, embedDim)
@@ -12,7 +18,7 @@ class TextCNN(nn.Module):
         self.conv4 = nn.Conv1d(embedDim, 128, kernel_size=4)
         self.conv5 = nn.Conv1d(embedDim, 128, kernel_size=5)
 
-        self.dropout = nn.Dropout(0.5)
+        self.dropout = nn.Dropout(dropout)
         self.fc = nn.Linear(128 * 3, numClasses)
 
     def convBlock(self, x, conv):

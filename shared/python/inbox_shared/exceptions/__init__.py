@@ -12,4 +12,6 @@ from inbox_shared.exceptions.appExceptions import (
     DocumentFileException,
     ExternalServiceException,
     MessagePublishException,
+    ModelArtifactException,
+    ModelInferenceException,
 )

@@ -135,4 +135,10 @@ class Document(Base, UUIDPrimaryKeyMixin, TimestampMixin):
         "AuditLog",
         back_populates="document",
     )
+
+    incomingEmail = relationship(
+        "IncomingEmail",
+        back_populates="document",
+        uselist=False,
+    )
     

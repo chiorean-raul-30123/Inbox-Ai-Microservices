@@ -48,3 +48,11 @@ class ExternalServiceException(AppException):
 
 class MessagePublishException(AppException):
     """Raised when publishing a queue message fails."""
+
+
+class ModelArtifactException(AppException):
+    """Raised when AI model artifacts are missing or invalid."""
+
+
+class ModelInferenceException(AppException):
+    """Raised when model inference fails."""

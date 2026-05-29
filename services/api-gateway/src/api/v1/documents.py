@@ -21,6 +21,7 @@ from src.schemas.document import (
 )
 from src.services.documentQueryService import DocumentQueryService
 from fastapi.responses import JSONResponse
+from fastapi import Form
 
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
@@ -38,7 +39,25 @@ def getDocumentQueryService() -> DocumentQueryService:
 @router.post("/upload")
 async def uploadDocument(
     file: UploadFile = File(...),
+    senderEmail: str | None = Form(default=None),
+    senderName: str | None = Form(default=None),
+    subject: str | None = Form(default=None),
+    body: str | None = Form(default=None),
 ):
+    data = {}
+
+    if senderEmail:
+        data["senderEmail"] = senderEmail
+
+    if senderName:
+        data["senderName"] = senderName
+
+    if subject:
+        data["subject"] = subject
+
+    if body:
+        data["body"] = body
+
     async with httpx.AsyncClient(timeout=60.0) as client:
         files = {
             "file": (
@@ -50,6 +69,7 @@ async def uploadDocument(
 
         response = await client.post(
             f"{settings.uploadInputServiceUrl}/upload",
+            data=data,
             files=files,
         )
 

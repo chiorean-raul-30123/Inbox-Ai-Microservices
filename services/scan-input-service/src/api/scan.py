@@ -16,10 +16,18 @@ def getScanInputService() -> ScanInputService:
 def uploadScan(
     file: Annotated[UploadFile, File(...)],
     submittedBy: Annotated[str | None, Form()] = None,
+    senderEmail: Annotated[str | None, Form()] = None,
+    senderName: Annotated[str | None, Form()] = None,
+    subject: Annotated[str | None, Form()] = None,
+    body: Annotated[str | None, Form()] = None,
 ):
     scanInputService = getScanInputService()
 
     return scanInputService.uploadScan(
         file=file,
         submittedBy=submittedBy,
+        senderEmail=senderEmail,
+        senderName=senderName,
+        subject=subject,
+        body=body,
     )

@@ -38,7 +38,7 @@ class InferencePipeline:
                 "FINANCE": float(probabilities["FINANCE"]),
                 "LEGAL": float(probabilities["LEGAL"]),
             },
-            "modelVersion": "cnn_v1",
+            "modelVersion": result.get("modelVersion", "unknown"),
         }
 
     def mapRawLabel(self, rawLabel: str) -> DocumentLabel:

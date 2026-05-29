@@ -29,6 +29,7 @@ export type DocumentListItemResponse = {
   final_label: DocumentLabel | null;
   department: DepartmentType | null;
   confidence_score: number | null;
+  incoming_email: IncomingEmailResponse | null;
   created_at: string;
   updated_at: string;
 };
@@ -49,4 +50,14 @@ export type BulkUploadItemResponse = {
 export type BulkUploadResponse = {
   uploadedDocuments: BulkUploadItemResponse[];
   failedDocuments: BulkUploadItemResponse[];
+};
+
+export type IncomingEmailResponse = {
+  id: string;
+  sender_email: string;
+  sender_name: string | null;
+  subject: string;
+  body: string | null;
+  external_message_id: string;
+  received_at: string;
 };

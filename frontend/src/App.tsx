@@ -15,6 +15,7 @@ import { ClientSubmitPage } from "./pages/ClientSubmitPage";
 import { DeletedDocumentsPage } from "./pages/DeletedDocumentsPage";
 import { CalendarPage } from "./pages/CalendarPage";
 import { ToDoPage } from "./pages/ToDoPage";
+import { UploadPage } from "./pages/UploadPage";
 
 export default function App() {
   return (
@@ -27,33 +28,17 @@ export default function App() {
           <Route
             path="/"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
                 <DashboardPage />
               </ProtectedRoute>
             }
           />
+
           <Route
-            path="/inbox/finance"
+            path="/upload"
             element={
-              <ProtectedRoute>
-                <FinanceInboxPage />
-              </ProtectedRoute>
-            }
-          />
-          
-          <Route
-            path="/inbox/legal"
-            element={
-              <ProtectedRoute>
-                <LegalInboxPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/inbox/hr"
-            element={
-              <ProtectedRoute>
-                <HrInboxPage />
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <UploadPage />
               </ProtectedRoute>
             }
           />
@@ -61,7 +46,7 @@ export default function App() {
           <Route
             path="/needs-review"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
                 <NeedsReviewPage />
               </ProtectedRoute>
             }
@@ -70,11 +55,39 @@ export default function App() {
           <Route
             path="/settings"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
                 <SettingsPage />
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/inbox/hr"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN", "HR"]}>
+                <HrInboxPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/inbox/finance"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN", "FINANCE"]}>
+                <FinanceInboxPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/inbox/legal"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN", "LEGAL"]}>
+                <LegalInboxPage />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/inbox"
             element={
@@ -103,6 +116,15 @@ export default function App() {
           />
 
           <Route
+            path="/todo"
+            element={
+              <ProtectedRoute>
+                <ToDoPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/spam"
             element={
               <ProtectedRoute>
@@ -112,15 +134,6 @@ export default function App() {
                   activeSection="spam"
                   icon="spam"
                 />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/todo"
-            element={
-              <ProtectedRoute>
-                <ToDoPage />
               </ProtectedRoute>
             }
           />

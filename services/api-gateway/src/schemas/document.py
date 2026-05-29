@@ -39,6 +39,16 @@ class DocumentAssignmentResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
+class IncomingEmailResponse(BaseModel):
+    id: UUID
+    senderEmail: str = Field(serialization_alias="sender_email")
+    senderName: str | None = Field(default=None, serialization_alias="sender_name")
+    subject: str
+    body: str | None = None
+    externalMessageId: str = Field(serialization_alias="external_message_id")
+    receivedAt: datetime = Field(serialization_alias="received_at")
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 class DocumentListItemResponse(BaseModel):
     id: UUID
@@ -58,6 +68,10 @@ class DocumentListItemResponse(BaseModel):
     confidenceScore: float | None = Field(
         default=None,
         serialization_alias="confidence_score",
+    )
+    incomingEmail: IncomingEmailResponse | None = Field(
+        default=None,
+        serialization_alias="incoming_email",
     )
     createdAt: datetime = Field(serialization_alias="created_at")
     updatedAt: datetime = Field(serialization_alias="updated_at")
@@ -98,6 +112,10 @@ class DocumentResponse(BaseModel):
 
     predictions: list[DocumentPredictionResponse] = []
     assignments: list[DocumentAssignmentResponse] = []
+    incomingEmail: IncomingEmailResponse | None = Field(
+        default=None,
+        serialization_alias="incoming_email",
+    )
 
     createdAt: datetime = Field(serialization_alias="created_at")
     updatedAt: datetime = Field(serialization_alias="updated_at")
@@ -135,3 +153,4 @@ class BulkUploadResponse(BaseModel):
 
 class DocumentDownloadUrlResponse(BaseModel):
     downloadUrl: str
+

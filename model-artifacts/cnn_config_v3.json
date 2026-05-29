@@ -1,0 +1,16 @@
+{
+  "model_version": "v3",
+  "vocab_size": 50000,
+  "seq_len": 900,
+  "embed_dim": 256,
+  "num_classes": 3,
+  "labels": {
+    "0": "HR",
+    "1": "FINANCE",
+    "2": "LEGAL"
+  },
+  "batch_size": 32,
+  "epochs": 10,
+  "learning_rate": 0.0005,
+  "dropout": 0.5
+}

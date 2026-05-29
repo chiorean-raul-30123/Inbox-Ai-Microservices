@@ -69,6 +69,12 @@ export function MailPreview({ document, departmentName }: MailPreviewProps) {
     );
   }
 
+  const subject = document.incoming_email?.subject ?? document.original_filename;
+  const senderName = document.incoming_email?.sender_name ?? "AI Document Router";
+  const senderEmail = document.incoming_email?.sender_email;
+  const receivedAt =
+    document.incoming_email?.received_at ?? document.created_at;
+
   return (
     <section className="min-w-0 flex-1 overflow-y-auto bg-[#f8fafc] p-4 md:p-6">
       <div className="mx-auto max-w-6xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all duration-200">
@@ -81,21 +87,26 @@ export function MailPreview({ document, departmentName }: MailPreviewProps) {
               </p>
 
               <h1 className="mt-3 break-words text-2xl font-bold text-slate-950">
-                {document.original_filename}
+                {subject}
               </h1>
 
               <div className="mt-4 grid gap-1 text-sm text-slate-600">
                 <p>
                   <span className="font-semibold text-slate-900">From:</span>{" "}
-                  AI Document Router
+                  <span className="font-medium text-slate-800">{senderName}</span>
+                  {senderEmail && (
+                    <span className="text-slate-500"> &lt;{senderEmail}&gt;</span>
+                  )}
                 </p>
+
                 <p>
                   <span className="font-semibold text-slate-900">To:</span>{" "}
                   {departmentName} Department
                 </p>
+
                 <p>
                   <span className="font-semibold text-slate-900">Received:</span>{" "}
-                  {new Date(document.created_at).toLocaleString()}
+                  {new Date(receivedAt).toLocaleString()}
                 </p>
               </div>
             </div>
@@ -105,6 +116,14 @@ export function MailPreview({ document, departmentName }: MailPreviewProps) {
             </span>
           </div>
         </div>
+
+        {document.incoming_email?.body && (
+          <div className="border-b border-slate-200 px-6 py-6 md:px-8">
+            <p className="whitespace-pre-line text-sm leading-7 text-slate-700">
+              {document.incoming_email.body}
+            </p>
+          </div>
+        )}
 
         <div className="grid gap-4 border-b border-slate-200 bg-slate-50 px-6 py-5 md:grid-cols-3 md:px-8">
           <div className="rounded-2xl bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md">

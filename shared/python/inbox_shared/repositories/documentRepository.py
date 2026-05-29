@@ -44,6 +44,7 @@ class DocumentRepository:
                 joinedload(Document.reviewer),
                 joinedload(Document.predictions),
                 joinedload(Document.assignments),
+                joinedload(Document.incomingEmail),
             )
             .where(Document.id == documentId)
         )
@@ -56,6 +57,7 @@ class DocumentRepository:
             .options(
                 joinedload(Document.uploader),
                 joinedload(Document.reviewer),
+                joinedload(Document.incomingEmail),
             )
             .order_by(Document.createdAt.desc())
         )
@@ -68,6 +70,7 @@ class DocumentRepository:
             .options(
                 joinedload(Document.uploader),
                 joinedload(Document.reviewer),
+                joinedload(Document.incomingEmail),
             )
             .where(Document.status == status)
             .order_by(Document.createdAt.desc())
@@ -85,6 +88,7 @@ class DocumentRepository:
             .options(
                 joinedload(Document.uploader),
                 joinedload(Document.reviewer),
+                joinedload(Document.incomingEmail),
             )
             .where(Document.department == department)
             .where(Document.status != DocumentStatus.DELETED)
@@ -107,6 +111,7 @@ class DocumentRepository:
             .options(
                 joinedload(Document.uploader),
                 joinedload(Document.reviewer),
+                joinedload(Document.incomingEmail),
             )
             .where(Document.status == DocumentStatus.DELETED)
             .where(Document.deletedBy == userId)
