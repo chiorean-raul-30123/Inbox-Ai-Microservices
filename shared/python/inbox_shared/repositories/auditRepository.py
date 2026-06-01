@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 
 from inbox_shared.enums import AuditAction
 from inbox_shared.models import AuditLog
+from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 
 
 class AuditRepository:
@@ -29,3 +31,25 @@ class AuditRepository:
         db.refresh(auditLog)
 
         return auditLog
+    
+    def listAll(
+        self,
+        db: Session,
+    ) -> list[AuditLog]:
+        stmt = (
+            select(AuditLog)
+            .options(
+                joinedload(AuditLog.user),
+                joinedload(AuditLog.document),
+            )
+            .order_by(
+                AuditLog.createdAt.desc()
+            )
+        )
+
+        return list(
+            db.execute(stmt)
+            .unique()
+            .scalars()
+            .all()
+        )

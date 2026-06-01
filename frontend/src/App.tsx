@@ -18,6 +18,7 @@ import { ToDoPage } from "./pages/ToDoPage";
 import { UploadPage } from "./pages/UploadPage";
 import { AdminUsersPage } from "./pages/AdminUsersPage";
 import { OperationsCenterPage } from "./pages/OperationsCenterPage";
+import { AuditCenterPage } from "./pages/AuditCenterPage";
 
 
 export default function App() {
@@ -68,6 +69,14 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={["ADMIN"]}>
                 <OperationsCenterPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/audit"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <AuditCenterPage />
               </ProtectedRoute>
             }
           />

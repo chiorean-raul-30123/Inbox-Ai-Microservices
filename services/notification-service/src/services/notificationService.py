@@ -1,14 +1,38 @@
-class NotificationService:
-    def handleNotificationRequested(self, event: dict):
-        documentId = event.get("documentId")
-        targetDepartment = event.get("targetDepartment")
-        status = event.get("status")
-        message = event.get("message")
-        correlationId = event.get("correlationId")
+from collections import deque
 
-        print("Notification received:")
-        print(f"documentId={documentId}")
-        print(f"targetDepartment={targetDepartment}")
-        print(f"status={status}")
-        print(f"message={message}")
-        print(f"correlationId={correlationId}")
+
+class NotificationService:
+    notifications = deque(maxlen=100)
+
+    def handleNotificationRequested(
+        self,
+        event: dict,
+    ):
+        notification = {
+            "id": len(self.notifications) + 1,
+            "title": event.get(
+                "status",
+                "Notification",
+            ),
+            "message": event.get(
+                "message",
+                "",
+            ),
+            "targetDepartment": event.get(
+                "targetDepartment",
+            ),
+            "documentId": event.get(
+                "documentId",
+            ),
+            "createdAt": event.get(
+                "timestamp",
+            ),
+        }
+
+        self.notifications.appendleft(
+            notification
+        )
+
+        print(
+            f"Notification stored: {notification}"
+        )
