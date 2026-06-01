@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from inbox_shared.database import getDb
+from inbox_shared.enums.appEnums import RoleType
 from inbox_shared.models import User
 from inbox_shared.repositories import RoleRepository, UserRepository
-from src.api.deps import getCurrentActiveUser
+from src.api.deps import getCurrentActiveUser, requireRoles
 from src.schemas.auth import LoginRequest, RegisterRequest, TokenResponse
 from src.schemas.user import UserResponse
 from src.services.authService import AuthService

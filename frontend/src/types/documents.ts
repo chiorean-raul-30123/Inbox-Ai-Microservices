@@ -61,3 +61,7 @@ export type IncomingEmailResponse = {
   external_message_id: string;
   received_at: string;
 };
+
+export type DocumentReviewRequest = {
+  final_label: DocumentLabel;
+};

@@ -5,6 +5,7 @@ from fastapi import UploadFile
 
 from inbox_shared.database import createDbSession
 from inbox_shared.enums import AuditAction, DocumentStatus, EmailProcessingStatus
+from inbox_shared.exceptions import MalwareDetectedException, SecurityScanException
 from inbox_shared.messaging.queueNames import QueueNames
 from inbox_shared.repositories import (
     AuditRepository,
@@ -14,6 +15,8 @@ from inbox_shared.repositories import (
 from inbox_shared.services import StorageService
 
 from src.messaging.rabbitPublisher import publishMessage
+from typing import Any
+from src.services.mailpitClient import MailpitClient
 
 
 class EmailInputService:
@@ -22,6 +25,7 @@ class EmailInputService:
         self.documentRepository = DocumentRepository()
         self.auditRepository = AuditRepository()
         self.incomingEmailRepository = IncomingEmailRepository()
+        self.mailpitClient = MailpitClient()
 
     def processSimulatedEmail(
         self,
@@ -121,6 +125,12 @@ class EmailInputService:
                         }
                     )
 
+                except MalwareDetectedException:
+                    raise
+
+                except SecurityScanException:
+                    raise
+
                 except Exception as exception:
                     failedAttachments.append(
                         {
@@ -140,3 +150,49 @@ class EmailInputService:
 
         finally:
             db.close()
+    
+    def processMailpitWebhook(self, *, messageId: str) -> dict:
+        message = self.mailpitClient.getMessage(messageId)
+
+        fromData = message.get("From") or {}
+        senderEmail = fromData.get("Address") or "unknown@local.test"
+        senderName = fromData.get("Name")
+
+        subject = message.get("Subject") or "No subject"
+        body = (
+            message.get("Text")
+            or message.get("HTML")
+            or ""
+        )
+
+        attachments = []
+
+        for attachment in message.get("Attachments") or []:
+            partId = (
+                attachment.get("PartID")
+                or attachment.get("PartId")
+                or attachment.get("partId")
+            )
+
+            filename = attachment.get("FileName") or attachment.get("Filename") or "attachment.pdf"
+            contentType = attachment.get("ContentType") or "application/pdf"
+
+            if not partId:
+                continue
+
+            attachments.append(
+                self.mailpitClient.getAttachmentFile(
+                    messageId=messageId,
+                    partId=partId,
+                    filename=filename,
+                    contentType=contentType,
+                )
+            )
+
+        return self.processSimulatedEmail(
+            senderEmail=senderEmail,
+            senderName=senderName,
+            subject=subject,
+            body=body,
+            attachments=attachments,
+        )

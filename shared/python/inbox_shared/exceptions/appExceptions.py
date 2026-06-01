@@ -56,3 +56,10 @@ class ModelArtifactException(AppException):
 
 class ModelInferenceException(AppException):
     """Raised when model inference fails."""
+
+class MalwareDetectedException(ValidationException):
+    """Raised when uploaded file is detected as malicious."""
+
+
+class SecurityScanException(AppException):
+    """Raised when antivirus scanning fails."""

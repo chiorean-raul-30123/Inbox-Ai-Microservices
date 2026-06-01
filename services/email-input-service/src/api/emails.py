@@ -1,8 +1,7 @@
 from typing import Annotated
-
-from fastapi import APIRouter, File, Form, UploadFile
-
+from fastapi import APIRouter, File, Form, UploadFile, Request
 from src.services.emailInputService import EmailInputService
+from src.schemas.mailpitWebhook import MailpitWebhookRequest
 
 
 router = APIRouter(prefix="/emails", tags=["Emails"])
@@ -28,4 +27,20 @@ def simulateIncomingEmail(
         subject=subject,
         body=body,
         attachments=attachments,
+    )
+
+@router.post("/mailpit/webhook")
+async def receiveMailpitWebhook(request: Request):
+    payload = await request.json()
+
+    print("MAILPIT WEBHOOK HIT")
+    print("MAILPIT WEBHOOK PAYLOAD:", payload)
+
+    webhookRequest = MailpitWebhookRequest.model_validate(payload)
+    messageId = webhookRequest.getMessageId()
+
+    emailInputService = getEmailInputService()
+
+    return emailInputService.processMailpitWebhook(
+        messageId=messageId,
     )

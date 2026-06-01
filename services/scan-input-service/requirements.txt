@@ -6,3 +6,4 @@ python-dotenv==1.0.1
 sqlalchemy
 psycopg2-binary
 boto3
+clamd

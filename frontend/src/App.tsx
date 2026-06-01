@@ -16,6 +16,9 @@ import { DeletedDocumentsPage } from "./pages/DeletedDocumentsPage";
 import { CalendarPage } from "./pages/CalendarPage";
 import { ToDoPage } from "./pages/ToDoPage";
 import { UploadPage } from "./pages/UploadPage";
+import { AdminUsersPage } from "./pages/AdminUsersPage";
+import { OperationsCenterPage } from "./pages/OperationsCenterPage";
+
 
 export default function App() {
   return (
@@ -48,6 +51,23 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={["ADMIN"]}>
                 <NeedsReviewPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/users"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <AdminUsersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/system-health"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <OperationsCenterPage />
               </ProtectedRoute>
             }
           />

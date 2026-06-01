@@ -1,7 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,Request
 
 from src.api.emails import router as emailsRouter
-from fastapi import Request
 from fastapi.responses import JSONResponse
 
 from inbox_shared.exceptions import (
@@ -11,6 +10,7 @@ from inbox_shared.exceptions import (
     ConflictException,
     ResourceNotFoundException,
     ValidationException,
+    SecurityScanException,
 )
 
 
@@ -31,7 +31,10 @@ async def validationExceptionHandler(request: Request, exc: ValidationException)
 
 
 @app.exception_handler(ResourceNotFoundException)
-async def resourceNotFoundExceptionHandler(request: Request, exc: ResourceNotFoundException):
+async def resourceNotFoundExceptionHandler(
+    request: Request,
+    exc: ResourceNotFoundException,
+):
     return JSONResponse(
         status_code=404,
         content={
@@ -53,7 +56,10 @@ async def conflictExceptionHandler(request: Request, exc: ConflictException):
 
 
 @app.exception_handler(AuthenticationException)
-async def authenticationExceptionHandler(request: Request, exc: AuthenticationException):
+async def authenticationExceptionHandler(
+    request: Request,
+    exc: AuthenticationException,
+):
     return JSONResponse(
         status_code=401,
         content={
@@ -64,9 +70,26 @@ async def authenticationExceptionHandler(request: Request, exc: AuthenticationEx
 
 
 @app.exception_handler(AuthorizationException)
-async def authorizationExceptionHandler(request: Request, exc: AuthorizationException):
+async def authorizationExceptionHandler(
+    request: Request,
+    exc: AuthorizationException,
+):
     return JSONResponse(
         status_code=403,
+        content={
+            "errorType": exc.__class__.__name__,
+            "detail": str(exc),
+        },
+    )
+
+
+@app.exception_handler(SecurityScanException)
+async def securityScanExceptionHandler(
+    request: Request,
+    exc: SecurityScanException,
+):
+    return JSONResponse(
+        status_code=503,
         content={
             "errorType": exc.__class__.__name__,
             "detail": str(exc),

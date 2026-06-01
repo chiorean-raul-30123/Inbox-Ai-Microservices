@@ -233,7 +233,7 @@ def reviewDocument(
     request: DocumentReviewRequest,
     db: Session = Depends(getDb),
     currentUser: User = Depends(
-        requireRoles(RoleType.ADMIN, RoleType.HR, RoleType.FINANCE, RoleType.LEGAL)
+        requireRoles(RoleType.ADMIN)
     ),
     documentService: DocumentQueryService = Depends(getDocumentQueryService),
 ):

@@ -11,6 +11,7 @@ from inbox_shared.exceptions import (
     ConflictException,
     ResourceNotFoundException,
     ValidationException,
+    SecurityScanException,
 )
 
 
@@ -73,6 +74,18 @@ async def authorizationExceptionHandler(request: Request, exc: AuthorizationExce
         },
     )
 
+@app.exception_handler(SecurityScanException)
+async def securityScanExceptionHandler(
+    request: Request,
+    exc: SecurityScanException,
+):
+    return JSONResponse(
+        status_code=503,
+        content={
+            "errorType": exc.__class__.__name__,
+            "detail": str(exc),
+        },
+    )
 
 @app.exception_handler(AppException)
 async def appExceptionHandler(request: Request, exc: AppException):

@@ -133,7 +133,7 @@ class DocumentUploadResponse(BaseModel):
 
 
 class DocumentReviewRequest(BaseModel):
-    finalLabel: DocumentLabel
+    finalLabel: DocumentLabel = Field(alias="final_label")
     reviewNotes: str | None = Field(default=None, max_length=1000)
 
 

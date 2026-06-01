@@ -3,7 +3,9 @@ import type {
   DocumentListItemResponse,
   DocumentDownloadUrlResponse,
   BulkUploadResponse,
+  DocumentReviewRequest,
 } from "../types/documents";
+
 
 export type UploadDocumentMetadata = {
   senderEmail?: string;
@@ -192,6 +194,18 @@ export async function simulateIncomingEmail(request: {
       "Content-Type": "multipart/form-data",
     },
   });
+
+  return response.data;
+}
+
+export async function reviewDocument(
+  documentId: string,
+  request: DocumentReviewRequest
+) {
+  const response = await axiosClient.post<DocumentListItemResponse>(
+    `/documents/${documentId}/review`,
+    request
+  );
 
   return response.data;
 }

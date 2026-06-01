@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
 import { uploadDocument, uploadScannedDocument } from "../api/documentsApi";
 
-
 type SubmitMode = "email" | "pdf" | "scan";
 
 const companyEmail = "documents@inbox-ai.local";
@@ -11,7 +10,19 @@ export function ClientSubmitPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  const [senderEmail, setSenderEmail] = useState("client.company@example.com");
+  const [senderName, setSenderName] = useState("Client Company");
+  const [subject, setSubject] = useState("Business document submission");
+  const [body, setBody] = useState(
+    "Hello, please process the attached document."
+  );
+
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
+
+  function getErrorMessage(error: any, fallback: string) {
+    return error.response?.data?.detail ?? fallback;
+  }
 
   async function handlePdfUpload() {
     if (!selectedFile) {
@@ -23,43 +34,59 @@ export function ClientSubmitPage() {
     setMessage(null);
 
     try {
-      const result = await uploadDocument(selectedFile);
-      setMessage(`Document submitted successfully. Tracking ID: ${result.documentId ?? result.id}`);
+      const result = await uploadDocument(selectedFile, {
+        senderEmail,
+        senderName,
+        subject,
+        body,
+      });
+
+      setMessage(
+        `Document submitted successfully. Tracking ID: ${
+          result.documentId ?? result.id
+        }`
+      );
+
       setSelectedFile(null);
     } catch (error: any) {
-      setMessage(
-        error.response?.data?.detail ?? "Upload failed. Please try again."
-      );
-    }finally {
+      setMessage(getErrorMessage(error, "Upload failed. Please try again."));
+    } finally {
       setIsSubmitting(false);
     }
   }
 
   async function handleScanUpload() {
-  if (!selectedFile) {
-    setMessage("Please select or scan an image first.");
-    return;
-  }
+    if (!selectedFile) {
+      setMessage("Please select or scan an image first.");
+      return;
+    }
 
-  setIsSubmitting(true);
-  setMessage(null);
+    setIsSubmitting(true);
+    setMessage(null);
 
-  try {
-    const result = await uploadScannedDocument(selectedFile);
-    setMessage(
-      `Scanned document submitted successfully. Tracking ID: ${
-        result.documentId ?? result.id
-      }`
-    );
-    setSelectedFile(null);
-  } catch (error: any) {
-    setMessage(
-      error.response?.data?.detail ?? "Scan upload failed. Please try again."
-    );
-  } finally {
-    setIsSubmitting(false);
+    try {
+      const result = await uploadScannedDocument(selectedFile, {
+        senderEmail,
+        senderName,
+        subject,
+        body,
+      });
+
+      setMessage(
+        `Scanned document submitted successfully. Tracking ID: ${
+          result.documentId ?? result.id
+        }`
+      );
+
+      setSelectedFile(null);
+    } catch (error: any) {
+      setMessage(
+        getErrorMessage(error, "Scan upload failed. Please try again.")
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   }
-}
 
   function handleCopyEmail() {
     navigator.clipboard.writeText(companyEmail);
@@ -67,11 +94,48 @@ export function ClientSubmitPage() {
   }
 
   function scrollToSubmit() {
-    document.getElementById("submit-options")?.scrollIntoView({ behavior: "smooth" });
+    document
+      .getElementById("submit-options")
+      ?.scrollIntoView({ behavior: "smooth" });
   }
 
   function handleScanClick() {
     cameraInputRef.current?.click();
+  }
+
+  function renderSubmissionFields() {
+    return (
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <input
+          value={senderEmail}
+          onChange={(event) => setSenderEmail(event.target.value)}
+          placeholder="Your email"
+          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-[#ff5640]"
+        />
+
+        <input
+          value={senderName}
+          onChange={(event) => setSenderName(event.target.value)}
+          placeholder="Name / company"
+          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-[#ff5640]"
+        />
+
+        <input
+          value={subject}
+          onChange={(event) => setSubject(event.target.value)}
+          placeholder="Subject"
+          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-[#ff5640] md:col-span-2"
+        />
+
+        <textarea
+          value={body}
+          onChange={(event) => setBody(event.target.value)}
+          placeholder="Message"
+          rows={5}
+          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-[#ff5640] md:col-span-2"
+        />
+      </div>
+    );
   }
 
   return (
@@ -84,7 +148,9 @@ export function ClientSubmitPage() {
             </div>
             <div>
               <div className="font-semibold text-white">Inbox AI</div>
-              <div className="text-xs text-slate-300">Document routing portal</div>
+              <div className="text-xs text-slate-300">
+                Document routing portal
+              </div>
             </div>
           </div>
 
@@ -114,8 +180,9 @@ export function ClientSubmitPage() {
             </h1>
 
             <p className="mt-6 max-w-xl text-lg leading-8 text-slate-300">
-              Upload PDFs, send attachments by email, or scan paper documents from your phone.
-              Inbox AI classifies and routes every document to the right business team.
+              Upload PDFs, send attachments by email, or scan paper documents
+              from your phone. Inbox AI classifies and routes every document to
+              the right business team.
             </p>
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
@@ -143,8 +210,6 @@ export function ClientSubmitPage() {
                 className="h-[460px] w-full rounded-[1.5rem] object-cover"
               />
             </div>
-
-            
           </div>
         </div>
       </section>
@@ -153,8 +218,16 @@ export function ClientSubmitPage() {
         <div className="grid gap-6 md:grid-cols-3">
           {[
             ["1", "Submit", "Send documents by upload, email, or mobile scan."],
-            ["2", "Classify", "AI extracts content and predicts HR, Finance, or Legal."],
-            ["3", "Route", "The document lands in the correct department inbox."],
+            [
+              "2",
+              "Classify",
+              "AI extracts content and predicts HR, Finance, or Legal.",
+            ],
+            [
+              "3",
+              "Route",
+              "The document lands in the correct department inbox.",
+            ],
           ].map(([step, title, description]) => (
             <div key={step} className="rounded-3xl bg-white p-8 shadow-sm">
               <div className="mb-8 flex h-12 w-12 items-center justify-center rounded-full bg-[#101820] text-lg font-bold text-white">
@@ -176,8 +249,8 @@ export function ClientSubmitPage() {
             Choose how you want to submit your document
           </h2>
           <p className="mt-4 text-lg leading-8 text-slate-600">
-            Pick the option that fits your workflow. Email and PDF upload are available now;
-            mobile scanning is prepared for OCR processing.
+            Pick the option that fits your workflow. Email, PDF upload and
+            mobile scan upload are available.
           </p>
         </div>
 
@@ -192,6 +265,7 @@ export function ClientSubmitPage() {
               onClick={() => {
                 setActiveMode(mode as SubmitMode);
                 setMessage(null);
+                setSelectedFile(null);
               }}
               className={`rounded-3xl border p-6 text-left transition ${
                 activeMode === mode
@@ -200,7 +274,9 @@ export function ClientSubmitPage() {
               }`}
             >
               <h3 className="text-xl font-bold text-[#101820]">{title}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                {description}
+              </p>
             </button>
           ))}
         </div>
@@ -208,13 +284,17 @@ export function ClientSubmitPage() {
         <div className="mt-8 rounded-[2rem] bg-white p-8 shadow-sm">
           {activeMode === "email" && (
             <div>
-              <h3 className="text-2xl font-bold text-[#101820]">Send your documents by email</h3>
+              <h3 className="text-2xl font-bold text-[#101820]">
+                Send your documents by email
+              </h3>
               <p className="mt-3 text-slate-600">
                 Attach PDF documents and send them to the intake address below.
               </p>
 
               <div className="mt-6 flex flex-col gap-4 rounded-2xl bg-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
-                <span className="font-mono text-sm text-slate-800">{companyEmail}</span>
+                <span className="font-mono text-sm text-slate-800">
+                  {companyEmail}
+                </span>
                 <button
                   onClick={handleCopyEmail}
                   className="rounded-full bg-[#101820] px-5 py-3 text-sm font-bold text-white hover:bg-[#ff5640]"
@@ -227,16 +307,23 @@ export function ClientSubmitPage() {
 
           {activeMode === "pdf" && (
             <div>
-              <h3 className="text-2xl font-bold text-[#101820]">Upload a PDF</h3>
+              <h3 className="text-2xl font-bold text-[#101820]">
+                Upload a PDF
+              </h3>
               <p className="mt-3 text-slate-600">
-                Your document will be stored securely and queued for classification.
+                Your document will be stored securely and queued for
+                classification.
               </p>
+
+              {renderSubmissionFields()}
 
               <input
                 type="file"
                 accept="application/pdf"
-                className="mt-6 block w-full rounded-2xl border border-slate-300 bg-white p-4 text-sm"
-                onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
+                className="mt-5 block w-full rounded-2xl border border-slate-300 bg-white p-4 text-sm"
+                onChange={(event) =>
+                  setSelectedFile(event.target.files?.[0] ?? null)
+                }
               />
 
               <button
@@ -251,10 +338,15 @@ export function ClientSubmitPage() {
 
           {activeMode === "scan" && (
             <div>
-              <h3 className="text-2xl font-bold text-[#101820]">Scan or upload an image</h3>
+              <h3 className="text-2xl font-bold text-[#101820]">
+                Scan or upload an image
+              </h3>
               <p className="mt-3 text-slate-600">
-                On mobile, this opens the camera. OCR processing will be connected in the scan input service.
+                On mobile, this opens the camera. OCR processing will extract
+                readable text and route the document.
               </p>
+
+              {renderSubmissionFields()}
 
               <input
                 ref={cameraInputRef}
@@ -262,21 +354,38 @@ export function ClientSubmitPage() {
                 accept="image/*"
                 capture="environment"
                 className="hidden"
-                onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
+                onChange={(event) =>
+                  setSelectedFile(event.target.files?.[0] ?? null)
+                }
               />
 
-              <button
-                onClick={handleScanClick}
-                className="mt-6 rounded-full bg-[#101820] px-7 py-4 text-sm font-bold text-white hover:bg-[#ff5640]"
-              >
-                Open camera
-              </button>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                <button
+                  onClick={handleScanClick}
+                  className="rounded-full bg-[#101820] px-7 py-4 text-sm font-bold text-white hover:bg-[#ff5640]"
+                >
+                  Open camera
+                </button>
+
+                <label className="cursor-pointer rounded-full border border-slate-300 px-7 py-4 text-center text-sm font-bold text-slate-700 hover:bg-slate-50">
+                  Upload image
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(event) =>
+                      setSelectedFile(event.target.files?.[0] ?? null)
+                    }
+                  />
+                </label>
+              </div>
 
               {selectedFile && (
                 <p className="mt-4 text-sm text-slate-600">
                   Selected image: {selectedFile.name}
                 </p>
               )}
+
               <button
                 onClick={handleScanUpload}
                 disabled={isSubmitting || !selectedFile}

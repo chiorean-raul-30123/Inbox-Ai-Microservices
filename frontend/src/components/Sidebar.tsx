@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { BarChart3, FileText, Inbox, LogOut, Settings, Upload } from "lucide-react";
+import { BarChart3, FileText, Inbox, LogOut, Settings, Upload,Users,Activity } from "lucide-react";
 
 import { useAuth } from "../auth/AuthContext";
 
@@ -37,6 +37,14 @@ export function Sidebar() {
             <NavLink to="/needs-review" className={linkClass}>
               <FileText size={18} />
               Needs Review
+            </NavLink>
+            <NavLink to="/admin/users" className={linkClass}>
+              <Users size={18} />
+              User Management
+            </NavLink>
+            <NavLink to="/system-health" className={linkClass}>
+              <Activity size={18} />
+              Operations Center
             </NavLink>
 
             <NavLink to="/settings" className={linkClass}>

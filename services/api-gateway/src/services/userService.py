@@ -2,11 +2,13 @@ import uuid
 
 from sqlalchemy.orm import Session
 
-from inbox_shared.exceptions import ConflictException, NotFoundException, ValidationException
+from inbox_shared.exceptions import ConflictException, ResourceNotFoundException, ValidationException,AuthenticationException
 from inbox_shared.models import User
 from inbox_shared.repositories import RoleRepository, UserRepository
 from src.core.security import hashPassword
-from src.schemas.user import CreateUserRequest
+from src.schemas.user import CreateUserRequest 
+from src.core.security import hashPassword, verifyPassword
+from src.schemas.user import ChangePasswordRequest
 
 
 class UserService:
@@ -52,7 +54,7 @@ class UserService:
         user = self.userRepository.getById(db, userId)
 
         if user is None:
-            raise NotFoundException("User not found.")
+            raise ResourceNotFoundException("User not found.")
 
         if user.id == currentUserId:
             raise ValidationException("You cannot deactivate your own account.")
@@ -60,3 +62,19 @@ class UserService:
         user.isActive = False
 
         return self.userRepository.save(db, user)
+    
+    def changeOwnPassword(
+        self,
+        db: Session,
+        currentUser: User,
+        request: ChangePasswordRequest,
+    ) -> User:
+        if not verifyPassword(request.currentPassword, currentUser.passwordHash):
+            raise ValidationException("Current password is incorrect.")
+
+        if verifyPassword(request.newPassword, currentUser.passwordHash):
+            raise ValidationException("New password must be different from current password.")
+
+        currentUser.passwordHash = hashPassword(request.newPassword)
+
+        return self.userRepository.save(db, currentUser)

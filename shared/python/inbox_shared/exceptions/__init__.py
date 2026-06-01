@@ -14,4 +14,6 @@ from inbox_shared.exceptions.appExceptions import (
     MessagePublishException,
     ModelArtifactException,
     ModelInferenceException,
+    SecurityScanException,
+    MalwareDetectedException,
 )

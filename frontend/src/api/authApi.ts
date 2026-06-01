@@ -10,3 +10,17 @@ export async function getMe(){
     const response = await axiosClient.get<UserResponse>("/auth/me");
     return response.data;
 }
+
+export type ChangePasswordRequest = {
+  current_password: string;
+  new_password: string;
+};
+
+export async function changePassword(request: ChangePasswordRequest) {
+  const response = await axiosClient.post<UserResponse>(
+    "/users/me/change-password",
+    request,
+  );
+
+  return response.data;
+}
