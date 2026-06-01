@@ -24,10 +24,12 @@ def getAuthService() -> AuthService:
 def register(
     request: RegisterRequest,
     db: Session = Depends(getDb),
+    currentUser: User = Depends(requireRoles(RoleType.ADMIN)),
     authService: AuthService = Depends(getAuthService),
 ):
     user = authService.register(db, request)
     return UserResponse.model_validate(user)
+
 
 
 @router.post("/login", response_model=TokenResponse, response_model_by_alias=True)

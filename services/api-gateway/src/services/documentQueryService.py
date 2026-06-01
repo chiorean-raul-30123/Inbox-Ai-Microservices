@@ -3,10 +3,21 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from inbox_shared.enums import AssignmentType, AuditAction, DepartmentType, DocumentLabel, DocumentStatus
-from inbox_shared.exceptions import ResourceNotFoundException
+from inbox_shared.enums import (
+    AssignmentType,
+    AuditAction,
+    DepartmentType,
+    DocumentLabel,
+    DocumentStatus,
+    RoleType,
+)
+from inbox_shared.exceptions import AuthorizationException, ResourceNotFoundException
 from inbox_shared.models import User
-from inbox_shared.repositories import AssignmentRepository, AuditRepository, DocumentRepository
+from inbox_shared.repositories import (
+    AssignmentRepository,
+    AuditRepository,
+    DocumentRepository,
+)
 from inbox_shared.services import StorageService
 from src.schemas.document import DocumentReviewRequest
 
@@ -24,11 +35,52 @@ class DocumentQueryService:
         self.auditRepository = auditRepository
         self.storageService = storageService
 
-    def getDocument(self, db: Session, documentId: uuid.UUID):
+    def ensureUserCanAccessDocument(
+        self,
+        *,
+        document,
+        currentUser: User,
+    ) -> None:
+        if currentUser.role is None:
+            raise AuthorizationException("User role is missing.")
+
+        roleName = currentUser.role.name
+
+        if roleName == RoleType.ADMIN.value:
+            return
+
+        if document.status == DocumentStatus.DELETED:
+            if document.deletedBy != currentUser.id:
+                raise AuthorizationException(
+                    "You are not allowed to access this deleted document."
+                )
+
+            return
+
+        if document.department is None:
+            raise AuthorizationException("Document department is missing.")
+
+        if document.department.value != roleName:
+            raise AuthorizationException(
+                "You are not allowed to access this document."
+            )
+
+    def getDocument(
+        self,
+        db: Session,
+        *,
+        documentId: uuid.UUID,
+        currentUser: User,
+    ):
         document = self.documentRepository.getById(db, documentId)
 
         if document is None:
             raise ResourceNotFoundException("Document not found.")
+
+        self.ensureUserCanAccessDocument(
+            document=document,
+            currentUser=currentUser,
+        )
 
         return document
 
@@ -56,6 +108,11 @@ class DocumentQueryService:
 
         if document is None:
             raise ResourceNotFoundException("Missing document.")
+
+        self.ensureUserCanAccessDocument(
+            document=document,
+            currentUser=currentUser,
+        )
 
         oldFinalLabel = document.finalLabel.value if document.finalLabel else None
         oldDepartment = document.department.value if document.department else None
@@ -108,53 +165,68 @@ class DocumentQueryService:
         db: Session,
         *,
         documentId: uuid.UUID,
+        currentUser: User,
     ):
         document = self.documentRepository.getById(db, documentId)
 
         if document is None:
             raise ResourceNotFoundException("Document not found.")
 
+        self.ensureUserCanAccessDocument(
+            document=document,
+            currentUser=currentUser,
+        )
+
         downloadUrl = self.storageService.getDownloadUrl(document.filePath)
 
         return {
             "downloadUrl": downloadUrl,
         }
-    
+
     def moveDocumentToDeleted(
-            self,
-            db: Session,
-            *,
-            documentId: uuid.UUID,
-            currentUser: User,
-        ):
-            
-            document = self.documentRepository.getById(db, documentId)
+        self,
+        db: Session,
+        *,
+        documentId: uuid.UUID,
+        currentUser: User,
+    ):
+        document = self.documentRepository.getById(db, documentId)
 
-            if document is None:
-                raise ResourceNotFoundException("Document not found.")
+        if document is None:
+            raise ResourceNotFoundException("Document not found.")
 
-            oldStatus = document.status.value
-            document.status = DocumentStatus.DELETED
-            document.deletedBy = currentUser.id
-            document.deletedAt = datetime.now(timezone.utc)
+        self.ensureUserCanAccessDocument(
+            document=document,
+            currentUser=currentUser,
+        )
 
-            savedDocument = self.documentRepository.saveDocument(db, document)
+        oldStatus = document.status.value
+        document.status = DocumentStatus.DELETED
+        document.deletedBy = currentUser.id
+        document.deletedAt = datetime.now(timezone.utc)
 
-            self.auditRepository.create(
-                db,
-                action=AuditAction.DOCUMENT_LABEL_UPDATED,
-                userId=currentUser.id,
-                documentId=document.id,
-                details={
-                    "oldStatus": oldStatus,
-                    "newStatus": DocumentStatus.DELETED.value,
-                    "action": "MOVE_TO_DELETED",
-                },
-            )
+        savedDocument = self.documentRepository.saveDocument(db, document)
 
-            return savedDocument
+        self.auditRepository.create(
+            db,
+            action=AuditAction.DOCUMENT_LABEL_UPDATED,
+            userId=currentUser.id,
+            documentId=document.id,
+            details={
+                "oldStatus": oldStatus,
+                "newStatus": DocumentStatus.DELETED.value,
+                "action": "MOVE_TO_DELETED",
+            },
+        )
 
-    def listDeletedDocuments(self, db: Session,currentUser: User):
+        return savedDocument
+
+    def listDeletedDocuments(
+        self,
+        db: Session,
+        *,
+        currentUser: User,
+    ):
         return self.documentRepository.listDeletedByUser(
             db,
             currentUser.id,

@@ -2,13 +2,18 @@ import uuid
 from typing import Annotated
 
 import httpx
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from inbox_shared.database import getDb
 from inbox_shared.enums import DepartmentType, RoleType
 from inbox_shared.models import User
-from inbox_shared.repositories import AssignmentRepository, AuditRepository, DocumentRepository
+from inbox_shared.repositories import (
+    AssignmentRepository,
+    AuditRepository,
+    DocumentRepository,
+)
 from inbox_shared.services import StorageService
 from src.api.deps import getCurrentActiveUser, requireRoles
 from src.core.config import settings
@@ -20,8 +25,6 @@ from src.schemas.document import (
     DocumentReviewRequest,
 )
 from src.services.documentQueryService import DocumentQueryService
-from fastapi.responses import JSONResponse
-from fastapi import Form
 
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
@@ -115,17 +118,25 @@ async def uploadBulkDocuments(
     return response.json()
 
 
-@router.get("", response_model=list[DocumentListItemResponse], response_model_by_alias=True)
+@router.get(
+    "",
+    response_model=list[DocumentListItemResponse],
+    response_model_by_alias=True,
+)
 def listDocuments(
     db: Session = Depends(getDb),
-    currentUser: User = Depends(getCurrentActiveUser),
+    currentUser: User = Depends(requireRoles(RoleType.ADMIN)),
     documentService: DocumentQueryService = Depends(getDocumentQueryService),
 ):
     documents = documentService.listDocuments(db)
     return [DocumentListItemResponse.model_validate(document) for document in documents]
 
 
-@router.get("/inbox/hr", response_model=list[DocumentListItemResponse], response_model_by_alias=True)
+@router.get(
+    "/inbox/hr",
+    response_model=list[DocumentListItemResponse],
+    response_model_by_alias=True,
+)
 def getHrInbox(
     db: Session = Depends(getDb),
     currentUser: User = Depends(requireRoles(RoleType.ADMIN, RoleType.HR)),
@@ -135,7 +146,11 @@ def getHrInbox(
     return [DocumentListItemResponse.model_validate(document) for document in documents]
 
 
-@router.get("/inbox/finance", response_model=list[DocumentListItemResponse], response_model_by_alias=True)
+@router.get(
+    "/inbox/finance",
+    response_model=list[DocumentListItemResponse],
+    response_model_by_alias=True,
+)
 def getFinanceInbox(
     db: Session = Depends(getDb),
     currentUser: User = Depends(requireRoles(RoleType.ADMIN, RoleType.FINANCE)),
@@ -145,7 +160,11 @@ def getFinanceInbox(
     return [DocumentListItemResponse.model_validate(document) for document in documents]
 
 
-@router.get("/inbox/legal", response_model=list[DocumentListItemResponse], response_model_by_alias=True)
+@router.get(
+    "/inbox/legal",
+    response_model=list[DocumentListItemResponse],
+    response_model_by_alias=True,
+)
 def getLegalInbox(
     db: Session = Depends(getDb),
     currentUser: User = Depends(requireRoles(RoleType.ADMIN, RoleType.LEGAL)),
@@ -155,7 +174,11 @@ def getLegalInbox(
     return [DocumentListItemResponse.model_validate(document) for document in documents]
 
 
-@router.get("/inbox/needs-review", response_model=list[DocumentListItemResponse], response_model_by_alias=True)
+@router.get(
+    "/inbox/needs-review",
+    response_model=list[DocumentListItemResponse],
+    response_model_by_alias=True,
+)
 def getNeedsReviewInbox(
     db: Session = Depends(getDb),
     currentUser: User = Depends(requireRoles(RoleType.ADMIN)),
@@ -167,7 +190,12 @@ def getNeedsReviewInbox(
     )
     return [DocumentListItemResponse.model_validate(document) for document in documents]
 
-@router.get("/deleted", response_model=list[DocumentListItemResponse], response_model_by_alias=True)
+
+@router.get(
+    "/deleted",
+    response_model=list[DocumentListItemResponse],
+    response_model_by_alias=True,
+)
 def getDeletedDocuments(
     db: Session = Depends(getDb),
     currentUser: User = Depends(getCurrentActiveUser),
@@ -191,10 +219,15 @@ def getDocumentDownloadUrl(
     return documentService.getDocumentDownloadUrl(
         db,
         documentId=documentId,
+        currentUser=currentUser,
     )
 
 
-@router.post("/{documentId}/review", response_model=DocumentResponse, response_model_by_alias=True)
+@router.post(
+    "/{documentId}/review",
+    response_model=DocumentResponse,
+    response_model_by_alias=True,
+)
 def reviewDocument(
     documentId: uuid.UUID,
     request: DocumentReviewRequest,
@@ -213,7 +246,12 @@ def reviewDocument(
 
     return DocumentResponse.model_validate(document)
 
-@router.post("/{documentId}/delete", response_model=DocumentResponse, response_model_by_alias=True)
+
+@router.post(
+    "/{documentId}/delete",
+    response_model=DocumentResponse,
+    response_model_by_alias=True,
+)
 def moveDocumentToDeleted(
     documentId: uuid.UUID,
     db: Session = Depends(getDb),
@@ -229,12 +267,21 @@ def moveDocumentToDeleted(
     return DocumentResponse.model_validate(document)
 
 
-@router.get("/{documentId}", response_model=DocumentResponse, response_model_by_alias=True)
+@router.get(
+    "/{documentId}",
+    response_model=DocumentResponse,
+    response_model_by_alias=True,
+)
 def getDocument(
     documentId: uuid.UUID,
     db: Session = Depends(getDb),
     currentUser: User = Depends(getCurrentActiveUser),
     documentService: DocumentQueryService = Depends(getDocumentQueryService),
 ):
-    document = documentService.getDocument(db, documentId)
+    document = documentService.getDocument(
+        db,
+        documentId=documentId,
+        currentUser=currentUser,
+    )
+
     return DocumentResponse.model_validate(document)

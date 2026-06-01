@@ -1,4 +1,5 @@
 from typing import Annotated
+from fastapi.responses import JSONResponse
 
 import httpx
 from fastapi import APIRouter, Depends, File, Form, UploadFile
@@ -53,5 +54,10 @@ async def simulateIncomingEmail(
             files=multipartFiles,
         )
 
-    response.raise_for_status()
+    if response.status_code >= 400:
+        return JSONResponse(
+            status_code=response.status_code,
+            content=response.json(),
+        )
+
     return response.json()
