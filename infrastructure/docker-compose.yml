@@ -36,6 +36,23 @@ services:
     volumes:
       - minio_data:/data
 
+  clamav:
+    image: clamav/clamav:stable
+    container_name: inbox-clamav
+    ports:
+      - "3310:3310"
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: ai-inbox-mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    environment:
+      MP_WEBHOOK_URL: "http://192.168.1.132:8102/emails/mailpit/webhook"
+    
+
 volumes:
   rabbitmq_data:
   postgres_data:
