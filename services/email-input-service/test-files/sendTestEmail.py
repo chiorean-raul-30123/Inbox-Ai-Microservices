@@ -6,10 +6,10 @@ from pathlib import Path
 message = EmailMessage()
 message["From"] = "andrei.popescu@client.local"
 message["To"] = "intake@ai-inbox.local"
-message["Subject"] = "Invoice for review"
-message.set_content("Hello, please process the attached invoice.")
+message["Subject"] = "Contract for review"
+message.set_content("Hello, please process the attached contract.")
 
-pdfPath = Path("sample.pdf")
+pdfPath = Path("SampleContract-Shuttle.pdf")
 
 with pdfPath.open("rb") as file:
     message.add_attachment(

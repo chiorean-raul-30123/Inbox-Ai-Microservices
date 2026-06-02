@@ -7,3 +7,4 @@ from inbox_shared.repositories.systemSettingsRepository import SystemSettingsRep
 from inbox_shared.repositories.userRepository import UserRepository
 from inbox_shared.repositories.dashboardRepository import DashboardRepository
 from inbox_shared.repositories.incomingEmailRepository import IncomingEmailRepository
+from inbox_shared.repositories.notificationRepository import NotificationRepository

@@ -10,6 +10,7 @@ from src.api.v1.user import router as userRouter
 from src.api.v1.systemHealth import router as systemHealthRouter
 from src.api.v1.system import router as systemRouter
 from src.api.v1.audit import router as auditRouter
+from src.api.v1.notifications import router as notificationsRouter
 
 
 apiRouter = APIRouter()
@@ -23,3 +24,4 @@ apiRouter.include_router(userRouter)
 apiRouter.include_router(systemHealthRouter)
 apiRouter.include_router(systemRouter)
 apiRouter.include_router(auditRouter)
+apiRouter.include_router(notificationsRouter)

@@ -7,6 +7,7 @@ from inbox_shared.models.incomingEmail import IncomingEmail
 from inbox_shared.models.role import Role
 from inbox_shared.models.systemSettings import SystemSettings
 from inbox_shared.models.user import User
+from inbox_shared.models.notification import Notification
 
 __all__ = [
     "AuditLog",
@@ -19,4 +20,5 @@ __all__ = [
     "TimestampMixin",
     "User",
     "UUIDPrimaryKeyMixin",
+    "Notification",
 ]

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { Sidebar } from "./Sidebar";
 import { UserProfileMenu } from "./UserProfileMenu";
+import { NotificationBell } from "./NotificationBell";
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
@@ -10,6 +11,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
       <div className="flex min-h-0 flex-1 flex-col">
         <header className="flex h-16 shrink-0 items-center justify-end border-b border-slate-200 bg-white px-8">
+          <NotificationBell />
           <UserProfileMenu />
         </header>
 
